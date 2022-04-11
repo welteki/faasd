@@ -44,6 +44,8 @@
             package = faasd;
             basicAuth.enable = false;
           };
+
+          networking.hostName = "faasd";
         })
       ];
     };
