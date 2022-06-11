@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/user"
 	"path"
 	"sort"
 	"strconv"
@@ -171,7 +172,7 @@ func (s *Supervisor) Start(svcs []Service) error {
 						}
 					}
 					if len(svc.User) > 0 {
-						uid, err := strconv.Atoi(svc.User)
+						uid, err := lookupUid(svc.User)
 						if err == nil {
 							if err := os.Chown(src, uid, -1); err != nil {
 								fmt.Printf("Unable to chown: %s to %d, error: %s\n", src, uid, err)
@@ -270,6 +271,19 @@ func (s *Supervisor) Start(svcs []Service) error {
 	}
 
 	return nil
+}
+
+func lookupUid(name string) (int, error) {
+	usr, err := user.Lookup(name)
+	if err == nil {
+		i, _ := strconv.Atoi(usr.Uid)
+		return i, nil
+	}
+	uid, err := strconv.Atoi(name)
+	if err == nil {
+		return uid, nil
+	}
+	return -1, fmt.Errorf("user %q not found", name)
 }
 
 func (s *Supervisor) Close() {
